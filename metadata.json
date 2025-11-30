@@ -1,4 +1,5 @@
 {
-  "name": "MedSync",
-  "description": "A comprehensive healthcare management dashboard with role-based access for Users, Doctors, and Administrators."
+  "name": "MedSync Doctor Dashboard",
+  "description": "A responsive and visually appealing dashboard for doctors to manage patients, appointments, and revenue, built with React and Tailwind CSS.",
+  "requestFramePermissions": []
 }
