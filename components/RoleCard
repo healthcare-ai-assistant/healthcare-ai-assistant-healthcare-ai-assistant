@@ -1,0 +1,48 @@
+
+import React from 'react';
+import { HeartIcon, StethoscopeIcon, ShieldIcon } from './Icons';
+import { RoleConfig, ViewState } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
+
+interface RoleCardProps {
+  role: RoleConfig;
+  onSelect: (view: ViewState) => void;
+}
+
+const RoleCard: React.FC<RoleCardProps> = ({ role, onSelect }) => {
+  const { t } = useLanguage();
+  const Icon =
+    role.iconType === 'heart'
+      ? HeartIcon
+      : role.iconType === 'stethoscope'
+      ? StethoscopeIcon
+      : ShieldIcon;
+
+  return (
+    <div
+      onClick={() => onSelect(role.targetRegister)}
+      className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full"
+    >
+      <div className="p-6 flex flex-col items-start flex-grow">
+        <div className={`w-16 h-16 rounded-xl flex items-center justify-center mb-4 ${role.gradientClass}`}>
+          <Icon className="w-8 h-8 text-white" />
+        </div>
+        <h3 className="text-2xl font-semibold text-slate-900 tracking-tight mb-2">
+          {role.title}
+        </h3>
+        <p className="text-slate-500 text-lg leading-relaxed">
+          {role.description}
+        </p>
+      </div>
+      <div className="px-6 pb-6 pt-0 mt-auto">
+        <button
+          className={`w-full h-11 rounded-xl font-semibold text-white transition-colors ${role.colorClass} flex items-center justify-center gap-2`}
+        >
+          {t('continue_as')} {role.title}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default RoleCard;
