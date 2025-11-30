@@ -1,82 +1,71 @@
-
-import React from 'react';
-import { StethoscopeIcon, HouseIcon, UserIcon, CalendarIcon, UsersIcon, MessageSquareIcon, MapPinIcon, CircleCheckBigIcon, FileTextIcon, CreditCardIcon } from './icons';
-import { useTranslation } from '../i18n/useTranslation';
-
-interface NavItemProps {
-  icon: React.ReactElement;
-  label: string;
-  active?: boolean;
-  onClick: () => void;
-}
-
-const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
-  <a
-    href="#"
-    onClick={(e) => {
-      e.preventDefault();
-      onClick();
-    }}
-    className={`flex items-center px-4 py-3 rounded-lg transition-colors duration-200 ${
-      active
-        ? 'bg-green-500 text-white'
-        : 'text-gray-700 hover:bg-gray-100'
-    }`}
-  >
-    {React.cloneElement(icon as React.ReactElement<any>, { className: `w-5 h-5 ${active ? 'text-white' : 'text-gray-700'}` })}
-    <span className="mx-4 font-medium">{label}</span>
-  </a>
-);
+import React, { useMemo } from 'react';
+import { 
+  LayoutDashboard, 
+  Stethoscope, 
+  Calendar, 
+  MessageSquare, 
+  FileText, 
+  CreditCard, 
+  Store, 
+  Beaker, 
+  User, 
+  AlertCircle, 
+  Watch, 
+  Home, 
+  Navigation 
+} from 'lucide-react';
+import { Page, MenuItem } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SidebarProps {
-    isSidebarOpen: boolean;
-    setSidebarOpen: (isOpen: boolean) => void;
-    activePage: string;
-    setActivePage: (page: string) => void;
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, setSidebarOpen, activePage, setActivePage }) => {
-    const { t } = useTranslation();
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, onNavigate }) => {
+  const { t } = useLanguage();
 
-    const navItems = [
-        { id: 'dashboard', icon: <HouseIcon />, label: t('sidebar.dashboard') },
-        { id: 'manage-profile', icon: <UserIcon />, label: t('sidebar.manageProfile') },
-        { id: 'appointments', icon: <CalendarIcon />, label: t('sidebar.appointments') },
-        { id: 'booking-requests', icon: <UsersIcon />, label: t('sidebar.bookingRequests') },
-        { id: 'online-consultation', icon: <MessageSquareIcon />, label: t('sidebar.onlineConsultation') },
-        { id: 'home-visits-map', icon: <MapPinIcon />, label: t('sidebar.homeVisitsMap') },
-        { id: 'confirm-reject-visits', icon: <CircleCheckBigIcon />, label: t('sidebar.confirmRejectVisits') },
-        { id: 'patient-history', icon: <FileTextIcon />, label: t('sidebar.patientHistory') },
-        { id: 'follow-up-appointments', icon: <StethoscopeIcon />, label: t('sidebar.followUpAppointments') },
-        { id: 'subscription', icon: <CreditCardIcon />, label: t('sidebar.subscription') },
-    ];
+  const menuItems: MenuItem[] = useMemo(() => [
+    { id: Page.DASHBOARD, label: t('sidebar.dashboard'), icon: LayoutDashboard },
+    { id: Page.FIND_DOCTORS, label: t('sidebar.findDoctors'), icon: Stethoscope },
+    { id: Page.APPOINTMENTS, label: t('sidebar.appointments'), icon: Calendar },
+    { id: Page.CONSULTATIONS, label: t('sidebar.consultations'), icon: MessageSquare },
+    { id: Page.HEALTH_RECORDS, label: t('sidebar.healthRecords'), icon: FileText },
+    { id: Page.PRESCRIPTIONS, label: t('sidebar.prescriptions'), icon: FileText },
+    { id: Page.PAYMENTS, label: t('sidebar.payments'), icon: CreditCard },
+    { id: Page.PHARMACIES, label: t('sidebar.pharmacies'), icon: Store },
+    { id: Page.LABS, label: t('sidebar.labs'), icon: Beaker },
+    { id: Page.REVIEWS, label: t('sidebar.reviews'), icon: User },
+    { id: Page.EMERGENCY, label: t('sidebar.emergency'), icon: AlertCircle },
+    { id: Page.WEARABLES, label: t('sidebar.wearables'), icon: Watch },
+    { id: Page.HOME_VISIT, label: t('sidebar.homeVisit'), icon: Home },
+    { id: Page.TRACK_DOCTOR, label: t('sidebar.trackDoctor'), icon: Navigation },
+    { id: Page.PROFILE, label: t('sidebar.profile'), icon: User },
+  ], [t]);
 
-    return (
-        <>
-            <div className={`fixed inset-0 z-20 bg-black bg-opacity-50 transition-opacity lg:hidden ${isSidebarOpen ? 'block' : 'hidden'}`} onClick={() => setSidebarOpen(false)}></div>
-            <aside className={`flex-shrink-0 w-64 bg-white border-e transform transition-transform duration-300 lg:transform-none lg:static lg:block ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed lg:relative z-30 h-full`}>
-                <div className="flex items-center justify-center p-4 border-b h-[65px]">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-green-500 p-2 rounded-lg">
-                            <StethoscopeIcon className="w-6 h-6 text-white" />
-                        </div>
-                        <h1 className="text-xl font-bold">MedSync Doctor</h1>
-                    </div>
-                </div>
-                <nav className="p-4 space-y-2">
-                    {navItems.map((item) => (
-                        <NavItem 
-                            key={item.id} 
-                            icon={item.icon} 
-                            label={item.label} 
-                            active={activePage === item.id}
-                            onClick={() => setActivePage(item.id)}
-                        />
-                    ))}
-                </nav>
-            </aside>
-        </>
-    );
+  return (
+    <aside className="w-64 bg-white border-r border-slate-200 h-screen sticky top-0 overflow-y-auto z-30 hidden lg:block">
+      <nav className="p-4 space-y-2">
+        {menuItems.map((item) => {
+          const isActive = currentPage === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onNavigate(item.id)}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 font-medium text-sm
+                ${isActive 
+                  ? 'bg-primary text-white shadow-md shadow-blue-500/20' 
+                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                }`}
+            >
+              <item.icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+              <span className="truncate">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </aside>
+  );
 };
 
 export default Sidebar;
