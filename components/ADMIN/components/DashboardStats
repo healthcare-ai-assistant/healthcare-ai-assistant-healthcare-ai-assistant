@@ -1,0 +1,70 @@
+import React from 'react';
+import { Users, Stethoscope, Calendar, DollarSign } from './Icons';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useData } from '../contexts/DataContext';
+
+const DashboardStats: React.FC = () => {
+  const { t } = useLanguage();
+  const { users, doctors, appointments } = useData();
+
+  const stats = [
+    {
+      title: t('totalUsers'),
+      value: (2842 + users.length).toLocaleString(),
+      trend: `+145 ${t('thisMonth')}`,
+      trendType: 'up',
+      icon: Users,
+      colorClass: 'bg-blue-500',
+    },
+    {
+      title: t('totalDoctors'),
+      value: doctors.length.toString(),
+      trend: `+28 ${t('thisMonth')}`,
+      trendType: 'up',
+      icon: Stethoscope,
+      colorClass: 'bg-green-500',
+    },
+    {
+      title: t('totalAppointments'),
+      value: (8528 + appointments.length).toLocaleString(),
+      trend: `+892 ${t('thisMonth')}`,
+      trendType: 'up',
+      icon: Calendar,
+      colorClass: 'bg-purple-500',
+    },
+    {
+      title: t('totalRevenue'),
+      value: '$45,230',
+      trend: `+$5,200 ${t('thisMonth')}`,
+      trendType: 'up',
+      icon: DollarSign,
+      colorClass: 'bg-orange-500',
+    },
+  ];
+
+  return (
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat, index) => (
+        <div
+          key={index}
+          className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+        >
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-medium text-gray-600">{stat.title}</h3>
+            <div className={`rounded-xl p-2 ${stat.colorClass}`}>
+              <stat.icon className="h-4 w-4 text-white" />
+            </div>
+          </div>
+          <div className="mt-4">
+            <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+            <p className="mt-1 text-xs font-medium text-green-600">
+              {stat.trend}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default DashboardStats;
