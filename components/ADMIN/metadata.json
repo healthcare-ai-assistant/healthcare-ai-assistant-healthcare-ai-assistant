@@ -1,0 +1,5 @@
+{
+  "name": "MedSync Admin Dashboard",
+  "description": "MedSync administrative dashboard featuring key metrics, quick actions, service usage statistics, and recent activity logs.",
+  "requestFramePermissions": []
+}
