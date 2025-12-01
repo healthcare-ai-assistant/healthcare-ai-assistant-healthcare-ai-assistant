@@ -1,0 +1,193 @@
+ import axios from 'axios';
+import { Doctor, User, Appointment, Subscription, Review } from '../types';
+
+// Base URL from the provided Swagger link
+const BASE_URL = 'https://d3.deltauniv.edu.eg/api';
+
+const client = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000, // Fail fast (5 seconds) so we can switch to mocks if blocked
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// --- Helper to map generic API response to UI types ---
+
+const mapDoctor = (data: any): Doctor => ({
+  id: data.id || data.doctorId || Math.random().toString(),
+  name: data.name || data.fullName || 'Unknown Doctor',
+  email: data.email || 'no-email@example.com',
+  specialization: data.specialization || 'General',
+  experience: data.experience ? String(data.experience) : '0',
+  joinedDate: data.joinedDate ? new Date(data.joinedDate).toLocaleDateString() : new Date().toLocaleDateString(),
+  patients: data.patientsCount || 0,
+  revenue: data.revenue ? String(data.revenue) : '$0',
+  status: data.isActive === false ? 'inactive' : 'active',
+  avatarSeed: (data.name || data.fullName || 'doc').replace(/\s/g, ''),
+  clinic: data.clinic || '',
+  license: data.license || ''
+});
+
+const mapUser = (data: any): User => ({
+  id: data.id || data.userId || Math.random().toString(),
+  name: data.name || data.fullName || 'Unknown User',
+  email: data.email || '',
+  phone: data.phone || '',
+  joinedDate: data.joinedDate ? new Date(data.joinedDate).toLocaleDateString() : new Date().toLocaleDateString(),
+  appointments: data.appointmentsCount || 0,
+  lastActive: data.lastActive || 'Recently',
+  status: data.isActive === false ? 'suspended' : 'active',
+  avatarSeed: (data.name || data.fullName || 'user').replace(/\s/g, ''),
+  age: data.age ? String(data.age) : '',
+  address: data.address || '',
+  city: data.city || ''
+});
+
+const mapAppointment = (data: any): Appointment => {
+  // Normalize status and type to match UI expectations
+  const rawStatus = (data.status || 'pending').toLowerCase();
+  let status: 'confirmed' | 'pending' | 'cancelled' = 'pending';
+  
+  if (rawStatus.includes('confirm')) status = 'confirmed';
+  else if (rawStatus.includes('cancel')) status = 'cancelled';
+
+  let statusColor = 'bg-yellow-100 text-yellow-800';
+  if (status === 'confirmed') statusColor = 'bg-green-100 text-green-700';
+  if (status === 'cancelled') statusColor = 'bg-red-100 text-red-800';
+
+  let typeColor = 'bg-blue-100 text-blue-800';
+  if (data.type === 'Clinic Visit') typeColor = 'bg-green-100 text-green-700';
+  if (data.type === 'Home Visit') typeColor = 'bg-purple-100 text-purple-800';
+
+  return {
+    id: data.id || Math.random().toString(),
+    type: data.type || 'Online Consultation',
+    status: status,
+    patientName: data.patientName || 'Unknown Patient',
+    patientSeed: (data.patientName || 'p').replace(/\s/g, ''),
+    doctorName: data.doctorName || 'Unknown Doctor',
+    doctorSeed: (data.doctorName || 'd').replace(/\s/g, ''),
+    date: data.date ? new Date(data.date).toLocaleDateString() : new Date().toLocaleDateString(),
+    time: data.time || '10:00 AM',
+    typeColorClass: typeColor,
+    statusColorClass: statusColor
+  };
+};
+
+export const api = {
+  // Doctors
+  getDoctors: async (): Promise<Doctor[] | null> => {
+    try {
+      const res = await client.get('/Doctors');
+      if (Array.isArray(res.data)) {
+        return res.data.map(mapDoctor);
+      }
+      return [];
+    } catch (error) {
+      // Quietly return null on error so DataContext keeps mocks
+      return null;
+    }
+  },
+  addDoctor: async (doc: Partial<Doctor>): Promise<Doctor | null> => {
+    try {
+      const payload = {
+        name: doc.name,
+        email: doc.email,
+        specialization: doc.specialization,
+        experience: Number(doc.experience) || 0,
+        // Include extra fields if backend supports them, otherwise they are ignored safely
+        clinic: doc.clinic,
+        license: doc.license
+      };
+      const res = await client.post('/Doctors', payload);
+      return mapDoctor(res.data);
+    } catch (error) {
+      // Return null to signify failure without crashing
+      return null;
+    }
+  },
+  deleteDoctor: async (id: string) => {
+    try {
+      await client.delete(`/Doctors/${id}`);
+    } catch (error) {
+      // Silent fail
+    }
+  },
+
+  // Users
+  getUsers: async (): Promise<User[] | null> => {
+    try {
+      const res = await client.get('/Users');
+      if (Array.isArray(res.data)) {
+        return res.data.map(mapUser);
+      }
+      return [];
+    } catch (error) {
+      return null;
+    }
+  },
+  addUser: async (user: Partial<User>): Promise<User | null> => {
+    try {
+      const payload = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        age: Number(user.age) || undefined,
+        address: user.address,
+        city: user.city
+      };
+      const res = await client.post('/Users', payload);
+      return mapUser(res.data);
+    } catch (error) {
+      return null;
+    }
+  },
+  deleteUser: async (id: string) => {
+    try {
+       await client.delete(`/Users/${id}`);
+    } catch (error) {
+       // Silent fail
+    }
+  },
+
+  // Appointments
+  getAppointments: async (): Promise<Appointment[] | null> => {
+    try {
+      const res = await client.get('/Appointments');
+      if (Array.isArray(res.data)) {
+        return res.data.map(mapAppointment);
+      }
+      return [];
+    } catch (error) {
+      return null;
+    }
+  },
+  updateAppointmentStatus: async (id: string, status: string) => {
+    try {
+       await client.put(`/Appointments/${id}`, { status });
+    } catch (error) {
+       // Silent fail
+    }
+  },
+
+  // Subscriptions
+  getSubscriptions: async (): Promise<Subscription[] | null> => {
+    try {
+      const res = await client.get('/Subscriptions');
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+      return null;
+    }
+  },
+
+  // Reviews
+  getReviews: async (): Promise<Review[] | null> => {
+    try {
+      const res = await client.get('/Reviews');
+      return Array.isArray(res.data) ? res.data : [];
+    } catch (error) {
+      return null;
+    }
+  }
+};
